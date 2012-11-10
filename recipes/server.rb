@@ -18,14 +18,19 @@
 # limitations under the License.
 #
 
-package "dhcp3-server"
+dhcp_pkg      = node['dhcp']['pkg']
+dhcp_service  = node['dhcp']['service']
+dhcp_conf_dir = node['dhcp']['conf_dir']
 
-service "dhcp3-server" do
+package dhcp_pkg
+
+service dhcp_service do
+  provider Chef::Provider::Service::Upstart if node['platform_version'].to_f >= 12.04
   supports :restart => true, :status => true, :reload => true
   action [ :enable ]
 end
 
-template "/etc/default/dhcp3-server" do
+template "/etc/default/#{dhcp_service}" do
   owner "root"
   group "root"
   mode 0644
@@ -59,25 +64,26 @@ optionsh.each {|k, v| options.push("#{k} #{v}")}
 options.sort!
 Chef::Log.info "options: #{options}"
 
-template "/etc/dhcp3/dhcpd.conf" do
+template "#{dhcp_conf_dir}/dhcpd.conf" do
   owner "root"
   group "root"
   mode 0644
   source "dhcpd.conf.erb"
   variables(
+    :conf_dir => dhcp_conf_dir,
     :allows => allows,
     :parameters => parameters,
     :options => options
     )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => dhcp_service), :delayed
 end
 
 #groups
 groups = []
-directory "/etc/dhcp3/groups.d"
+directory "#{dhcp_conf_dir}/groups.d"
 
-template "/etc/dhcp3/groups.d/group_list.conf" do
+template "#{dhcp_conf_dir}/groups.d/group_list.conf" do
   owner "root"
   group "root"
   mode 0644
@@ -87,14 +93,14 @@ template "/etc/dhcp3/groups.d/group_list.conf" do
     :items => groups
     )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => dhcp_service), :delayed
 end
 
 #subnets
 subnets = []
-directory "/etc/dhcp3/subnets.d"
+directory "#{dhcp_conf_dir}/subnets.d"
 
-template "/etc/dhcp3/subnets.d/subnet_list.conf" do
+template "#{dhcp_conf_dir}/subnets.d/subnet_list.conf" do
   owner "root"
   group "root"
   mode 0644
@@ -104,13 +110,13 @@ template "/etc/dhcp3/subnets.d/subnet_list.conf" do
     :items => subnets
     )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => dhcp_service), :delayed
 end
 
 #hosts
 hosts = []
-directory "/etc/dhcp3/hosts.d"
-template "/etc/dhcp3/hosts.d/host_list.conf" do
+directory "#{dhcp_conf_dir}/hosts.d"
+template "#{dhcp_conf_dir}/hosts.d/host_list.conf" do
   owner "root"
   group "root"
   mode 0644
@@ -120,5 +126,5 @@ template "/etc/dhcp3/hosts.d/host_list.conf" do
     :items => hosts
     )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => dhcp_service), :delayed
 end

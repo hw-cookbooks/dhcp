@@ -1,6 +1,6 @@
 
 action :add do
-  filename = "/etc/dhcp3/subnets.d/#{new_resource.subnet}.conf"
+  filename = "#{dhcp_conf_dir}/subnets.d/#{new_resource.subnet}.conf"
   template filename do 
     cookbook "dhcp"
     source "subnet.conf.erb"
@@ -14,29 +14,38 @@ action :add do
     owner "root"
     group "root"
     mode 0644
-    notifies :restart, resources(:service => "dhcp3-server"), :delayed
+    notifies :restart, resources(:service => dhcp_service), :delayed
   end
   utils_line "include \"#{filename}\";" do
     action :add
-    file "/etc/dhcp3/subnets.d/subnet_list.conf"
-    notifies :restart, resources(:service => "dhcp3-server"), :delayed
+    file "#{dhcp_conf_dir}/subnets.d/subnet_list.conf"
+    notifies :restart, resources(:service => dhcp_service), :delayed
   end
 end
 
 action :remove do
-  filename = "/etc/dhcp3/subnets.d/#{new_resource.name}.conf"
+  filename = "#{dhcp_conf_dir}/subnets.d/#{new_resource.name}.conf"
   if ::File.exists?(filename)
-    Chef::Log.info "Removing #{new_resource.name} subnet from /etc/dhcp3/subnets.d/"
+    Chef::Log.info "Removing #{new_resource.name} subnet from #{dhcp_conf_dir}/subnets.d/"
     file filename do
       action :delete
-      notifies :restart, resources(:service => "dhcp3-server"), :delayed
+      notifies :restart, resources(:service => dhcp_service), :delayed
     end
     new_resource.updated_by_last_action(true)
   end
   utils_line "include \"#{filename}\";" do
     action :remove
-    file "/etc/dhcp3/subnets.d/subnet_list.conf"
-    notifies :restart, resources(:service => "dhcp3-server"), :delayed
+    file "#{dhcp_conf_dir}/subnets.d/subnet_list.conf"
+    notifies :restart, resources(:service => dhcp_service), :delayed
   end
 end
 
+private
+
+def dhcp_service
+  node['dhcp']['service']
+end
+
+def dhcp_conf_dir
+  node['dhcp']['conf_dir']
+end

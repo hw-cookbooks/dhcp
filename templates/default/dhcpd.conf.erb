@@ -12,7 +12,7 @@ allow <%= allow %>;
 option <%= option %>;
 <% end -%>
 
-include "/etc/dhcp3/groups.d/group_list.conf";
-include "/etc/dhcp3/subnets.d/subnet_list.conf";
-include "/etc/dhcp3/hosts.d/host_list.conf";
+include "<%= @conf_dir %>/groups.d/group_list.conf";
+include "<%= @conf_dir %>/subnets.d/subnet_list.conf";
+include "<%= @conf_dir %>/hosts.d/host_list.conf";
 
