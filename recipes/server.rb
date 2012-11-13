@@ -29,15 +29,12 @@ service node[:dhcp][:package] do
   end
 end
 
-case node[:dhcp][:package]
-when "dhcp3-server"
-  template "/etc/default/dhcp3-server" do
-    owner "root"
-    group "root"
-    mode 0644
-    source "dhcp3-server.erb"
-    variables(:interfaces => node['dhcp']['interfaces'])
-  end
+template "/etc/default/#{node[:dhcp][:package]}" do
+  owner "root"
+  group "root"
+  mode 0644
+  source "dhcp3-server.erb"
+  variables(:interfaces => node['dhcp']['interfaces'])
 end
 
 #get any default attributes and merge them with the data bag items
