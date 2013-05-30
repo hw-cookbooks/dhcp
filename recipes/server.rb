@@ -35,21 +35,26 @@ end
 
 #get any default attributes and merge them with the data bag items
 #convert them to the proper formatted lists, sort, and pass into template
+default = Array.new
 begin
   default = data_bag_item('dhcp', 'default')
 rescue Net::HTTPServerException
 end
 
 allows = node['dhcp']['allows'] || []
-allows.push(default['allows']).flatten!
-allows.uniq!
-allows.sort!
+unless default.empty?
+  allows.push(default['allows']).flatten!
+end
+#allows.uniq!
+#allows.sort!
 Chef::Log.debug "allows: #{allows}"
 
 parameters = []
 parametersh = {}
 node['dhcp']['parameters'].each {|k, v| parametersh[k] = v}
-parametersh.merge!(default['parameters'])
+unless default.empty?
+  parametersh.merge!(default['parameters'])
+end
 parametersh.each {|k, v| parameters.push("#{k} #{v}")}
 parameters.sort!
 Chef::Log.debug "parameters: #{parameters}"
@@ -57,7 +62,9 @@ Chef::Log.debug "parameters: #{parameters}"
 options = []
 optionsh = {}
 node['dhcp']['options'].each {|k,v| optionsh[k] = v}
-optionsh.merge!(default['options'])
+unless default.empty?
+  optionsh.merge!(default['options'])
+end
 optionsh.each {|k, v| options.push("#{k} #{v}")}
 options.sort!
 Chef::Log.info "options: #{options}"
