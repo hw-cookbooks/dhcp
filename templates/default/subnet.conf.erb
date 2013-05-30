@@ -3,7 +3,7 @@
 subnet <%= @subnet %> netmask <%= @netmask%> {
 range 
 <% if not @routers.empty? -%>
-  option routers <%= @routers.collect! {|i| "#{i}" }.join(",") %>;
+  option routers <%= @routers.collect {|i| "#{i}" }.join(",") %>;
 <% end -%>
   option subnet-mask <%= @netmask %>;
   option broadcast-address <%= @broadcast %>;
