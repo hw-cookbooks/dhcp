@@ -35,29 +35,32 @@ end
 
 #get any default attributes and merge them with the data bag items
 #convert them to the proper formatted lists, sort, and pass into template
-default = data_bag_item('dhcp', 'default')
+if data_bag('dhcp').exists?
 
-allows = node['dhcp']['allows'] || []
-allows.push(default['allows']).flatten!
-allows.uniq!
-allows.sort!
-Chef::Log.debug "allows: #{allows}"
+  default = data_bag_item('dhcp', 'default')
 
-parameters = []
-parametersh = {}
-node['dhcp']['parameters'].each {|k, v| parametersh[k] = v}
-parametersh.merge!(default['parameters'])
-parametersh.each {|k, v| parameters.push("#{k} #{v}")}
-parameters.sort!
-Chef::Log.debug "parameters: #{parameters}"
+  allows = node['dhcp']['allows'] || []
+  allows.push(default['allows']).flatten!
+  allows.uniq!
+  allows.sort!
+  Chef::Log.debug "allows: #{allows}"
 
-options = []
-optionsh = {}
-node['dhcp']['options'].each {|k,v| optionsh[k] = v}
-optionsh.merge!(default['options'])
-optionsh.each {|k, v| options.push("#{k} #{v}")}
-options.sort!
-Chef::Log.info "options: #{options}"
+  parameters = []
+  parametersh = {}
+  node['dhcp']['parameters'].each {|k, v| parametersh[k] = v}
+  parametersh.merge!(default['parameters'])
+  parametersh.each {|k, v| parameters.push("#{k} #{v}")}
+  parameters.sort!
+  Chef::Log.debug "parameters: #{parameters}"
+
+  options = []
+  optionsh = {}
+  node['dhcp']['options'].each {|k,v| optionsh[k] = v}
+  optionsh.merge!(default['options'])
+  optionsh.each {|k, v| options.push("#{k} #{v}")}
+  options.sort!
+  Chef::Log.info "options: #{options}"
+end
 
 template "/etc/dhcp3/dhcpd.conf" do
   owner "root"
@@ -65,10 +68,10 @@ template "/etc/dhcp3/dhcpd.conf" do
   mode 0644
   source "dhcpd.conf.erb"
   variables(
-    :allows => allows,
-    :parameters => parameters,
-    :options => options
-    )
+            :allows => allows,
+            :parameters => parameters,
+            :options => options
+            )
   action :create
   notifies :restart, resources(:service => "dhcp3-server"), :delayed
 end
@@ -83,9 +86,9 @@ template "/etc/dhcp3/groups.d/group_list.conf" do
   mode 0644
   source "list.conf.erb"
   variables(
-    :item => "groups",
-    :items => groups
-    )
+            :item => "groups",
+            :items => groups
+            )
   action :create
   notifies :restart, resources(:service => "dhcp3-server"), :delayed
 end
@@ -100,9 +103,9 @@ template "/etc/dhcp3/subnets.d/subnet_list.conf" do
   mode 0644
   source "list.conf.erb"
   variables(
-    :item => "subnets",
-    :items => subnets
-    )
+            :item => "subnets",
+            :items => subnets
+            )
   action :create
   notifies :restart, resources(:service => "dhcp3-server"), :delayed
 end
@@ -116,9 +119,9 @@ template "/etc/dhcp3/hosts.d/host_list.conf" do
   mode 0644
   source "list.conf.erb"
   variables(
-    :item => "hosts",
-    :items => hosts
-    )
+            :item => "hosts",
+            :items => hosts
+            )
   action :create
   notifies :restart, resources(:service => "dhcp3-server"), :delayed
 end
