@@ -35,34 +35,32 @@ end
 
 #get any default attributes and merge them with the data bag items
 #convert them to the proper formatted lists, sort, and pass into template
-def merge data_bag
-
+begin
   default = data_bag_item('dhcp', 'default')
-
-  allows = node['dhcp']['allows'] || []
-  allows.push(default['allows']).flatten!
-  allows.uniq!
-  allows.sort!
-  Chef::Log.debug "allows: #{allows}"
-
-  parameters = []
-  parametersh = {}
-  node['dhcp']['parameters'].each {|k, v| parametersh[k] = v}
-  parametersh.merge!(default['parameters'])
-  parametersh.each {|k, v| parameters.push("#{k} #{v}")}
-  parameters.sort!
-  Chef::Log.debug "parameters: #{parameters}"
-
-  options = []
-  optionsh = {}
-  node['dhcp']['options'].each {|k,v| optionsh[k] = v}
-  optionsh.merge!(default['options'])
-  optionsh.each {|k, v| options.push("#{k} #{v}")}
-  options.sort!
-  Chef::Log.info "options: #{options}"
-
 rescue Net::HTTPServerException
 end
+
+allows = node['dhcp']['allows'] || []
+allows.push(default['allows']).flatten!
+allows.uniq!
+allows.sort!
+Chef::Log.debug "allows: #{allows}"
+
+parameters = []
+parametersh = {}
+node['dhcp']['parameters'].each {|k, v| parametersh[k] = v}
+parametersh.merge!(default['parameters'])
+parametersh.each {|k, v| parameters.push("#{k} #{v}")}
+parameters.sort!
+Chef::Log.debug "parameters: #{parameters}"
+
+options = []
+optionsh = {}
+node['dhcp']['options'].each {|k,v| optionsh[k] = v}
+optionsh.merge!(default['options'])
+optionsh.each {|k, v| options.push("#{k} #{v}")}
+options.sort!
+Chef::Log.info "options: #{options}"
 
 template "/etc/dhcp3/dhcpd.conf" do
   owner "root"
