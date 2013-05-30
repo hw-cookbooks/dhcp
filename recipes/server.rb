@@ -21,6 +21,12 @@
 package "dhcp3-server"
 
 service "dhcp3-server" do
+  case node["platform"]
+  when "ubuntu"
+    if node['platform_version'].to_f >= 12 then
+      service_name "isc-dhcp-server"
+    end
+  end
   supports :restart => true, :status => true, :reload => true
   action [ :enable ]
 end
