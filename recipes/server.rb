@@ -51,28 +51,28 @@ allows = node['dhcp']['allows'] || []
 unless default.empty?
   allows.push(default['allows']).flatten!
 end
-#allows.uniq!
-#allows.sort!
+allows.uniq
+allows.sort
 Chef::Log.debug "allows: #{allows}"
 
 parameters = []
 parametersh = {}
 node['dhcp']['parameters'].each {|k, v| parametersh[k] = v}
 unless default.empty?
-  parametersh.merge!(default['parameters'])
+  parametersh.merge(default['parameters'])
 end
 parametersh.each {|k, v| parameters.push("#{k} #{v}")}
-parameters.sort!
+parameters.sort
 Chef::Log.debug "parameters: #{parameters}"
 
 options = []
 optionsh = {}
 node['dhcp']['options'].each {|k,v| optionsh[k] = v}
 unless default.empty?
-  optionsh.merge!(default['options'])
+  optionsh.merge(default['options'])
 end
 optionsh.each {|k, v| options.push("#{k} #{v}")}
-options.sort!
+options.sort
 Chef::Log.info "options: #{options}"
 
 template "/etc/dhcp3/dhcpd.conf" do
