@@ -35,7 +35,7 @@ end
 
 #get any default attributes and merge them with the data bag items
 #convert them to the proper formatted lists, sort, and pass into template
-if data_bag('dhcp').exists?
+def merge data_bag
 
   default = data_bag_item('dhcp', 'default')
 
@@ -60,6 +60,8 @@ if data_bag('dhcp').exists?
   optionsh.each {|k, v| options.push("#{k} #{v}")}
   options.sort!
   Chef::Log.info "options: #{options}"
+
+rescue Net::HTTPServerException
 end
 
 template "/etc/dhcp3/dhcpd.conf" do
