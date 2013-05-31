@@ -6,18 +6,13 @@
   <% end -%>
 <% end -%>
 
-<% if not @parameters.empty? -%>
-  <% @parameters.each do |parameter| -%>
-  <%= parameter %>;
-  <% end -%>
+<% @parameters.each_pair do |param,value| -%>
+<%= param %> <%= value %>;
 <% end -%>
 
-<% if not @options.empty? -%>
-  <% @options.each do |option| -%>
-  option <%= option %>;
-  <% end -%>
+<% @options.each_pair do |option,value| -%>
+option <%= option %> <%= value %>;
 <% end -%>
 
-include "<%= @dhcp_dir %>/groups.d/group_list.conf";
-include "<%= @dhcp_dir %>/subnets.d/subnet_list.conf";
-include "<%= @dhcp_dir %>/hosts.d/host_list.conf";
+include "<%= node[:dhcp][:config_dir] %>/subnets.d/subnet_list.conf";
+

@@ -1,3 +1,13 @@
+if (platform == "debian" and platform_version.to_f >= 6.0) or (platform == "ubuntu" and platform_version.to_f >= 12.04)
+  set[:dhcp][:package] = "isc-dhcp-server"
+  set[:dhcp][:config_dir] = "/etc/dhcp"
+elsif platform == "debian" or platform == "ubuntu"
+  set[:dhcp][:package] = "dhcp3-server"
+  set[:dhcp][:config_dir] = "/etc/dhcp3"
+else
+  Chef::Log.error("Unsupported platform #{platform}")
+end
+
 default[:dhcp][:interfaces] = [ "eth0" ]
 
 default[:dhcp][:allows] = []
@@ -14,12 +24,3 @@ default[:dhcp][:options] = {
   #"domain-name" => "\"example.org\"",
   #"domain-name-servers" => "ns1.example.org, ns2.example.org"
 }
-
-case node["platform"]
-when "ubuntu"
-  if node['platform_version'].to_f >= 12 then
-    default[:dhcp][:directory] = "/etc/dhcp"
-  end
-else
-  default[:dhcp][:directory] = "/etc/dhcp3"
-end

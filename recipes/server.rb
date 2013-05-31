@@ -18,20 +18,18 @@
 # limitations under the License.
 #
 
-package "dhcp3-server"
+package node[:dhcp][:package]
 
-service "dhcp3-server" do
-  case node["platform"]
-  when "ubuntu"
-    if node['platform_version'].to_f >= 12 then
-      service_name "isc-dhcp-server"
-    end
-  end
+service node[:dhcp][:package] do
   supports :restart => true, :status => true, :reload => true
   action [ :enable ]
+
+  if node['platform'] == "ubuntu" && node['platform_version'].to_f >= 12.04
+    provider Chef::Provider::Service::Upstart
+  end
 end
 
-template "/etc/default/dhcp3-server" do
+template "/etc/default/#{node[:dhcp][:package]}" do
   owner "root"
   group "root"
   mode 0644
@@ -75,7 +73,7 @@ optionsh.each {|k, v| options.push("#{k} #{v}")}
 options.sort
 Chef::Log.info "options: #{options}"
 
-dhcp_dir = node["dhcp"]["directory"]
+dhcp_dir = node["dhcp"]["config_dir"]
 
 template "#{dhcp_dir}/dhcpd.conf" do
   owner "root"
@@ -89,31 +87,30 @@ template "#{dhcp_dir}/dhcpd.conf" do
             :dhcp_dir => dhcp_dir
             )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
 end
 
 #groups
-groups = []
-directory "#{dhcp_dir}/groups.d"
 
-template "#{dhcp_dir}/groups.d/group_list.conf" do
-  owner "root"
-  group "root"
-  mode 0644
-  source "list.conf.erb"
-  variables(
-            :item => "groups",
-            :items => groups
-            )
-  action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+groups = default['groups'] || {}
+groups_dir = "#{dhcp_dir}/groups.d"
+directory groups_dir
+
+groups.each_pair do |group_name, values|
+  dhcp_group group_name do
+    options values['options']
+    parameters values['parameters']
+    hosts values['hosts']
+    action :add
+  end
 end
 
 #subnets
-subnets = []
-directory "#{dhcp_dir}/subnets.d"
+subnets = default['subnets'] || {}
+subnets_dir = "#{dhcp_dir}/subnets.d"
+directory subnets_dir
 
-template "#{dhcp_dir}/subnets.d/subnet_list.conf" do
+template "#{subnets_dir}/subnet_list.conf" do
   owner "root"
   group "root"
   mode 0644
@@ -123,21 +120,31 @@ template "#{dhcp_dir}/subnets.d/subnet_list.conf" do
             :items => subnets
             )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
+end
+
+subnets.each_pair do |subnet_name, values|
+  dhcp_subnet subnet_name do
+    ranges values['ranges']
+    netmask values['netmask']
+    options values['options']
+    parameters values['parameters']
+    groups values['groups']
+    action :add
+  end
 end
 
 #hosts
-hosts = []
-directory "#{dhcp_dir}/hosts.d"
-template "#{dhcp_dir}/hosts.d/host_list.conf" do
-  owner "root"
-  group "root"
-  mode 0644
-  source "list.conf.erb"
-  variables(
-            :item => "hosts",
-            :items => hosts
-            )
-  action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+hosts = default['hosts'] || {}
+  hosts_dir = "#{dhcp_dir]}/hosts.d"
+directory hosts_dir
+
+hosts.each_pair do |host_name, values|
+  Chef::Log.info "hosts: #{host_name} #{values}"
+  dhcp_host host_name do
+    options values['options']
+    parameters values['parameters']
+    action :add
+  end
 end
+
