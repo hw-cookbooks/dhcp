@@ -10,8 +10,9 @@ default[:dhcp][:parameters] = {
 }
 
 default[:dhcp][:options] = {
-  "domain-name" => "\"example.org\"",
-  "domain-name-servers" => ["ns1.example.org", "ns2.example.org"]
+  # examples:
+  #"domain-name" => "\"example.org\"",
+  #"domain-name-servers" => "ns1.example.org, ns2.example.org"
 }
 
 case node["platform"]
