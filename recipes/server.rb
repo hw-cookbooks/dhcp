@@ -92,21 +92,25 @@ end
 
 #groups
 
-groups = default['groups'] || {}
+groups = []
 groups_dir = "#{dhcp_dir}/groups.d"
 directory groups_dir
 
-groups.each_pair do |group_name, values|
-  dhcp_group group_name do
-    options values['options']
-    parameters values['parameters']
-    hosts values['hosts']
-    action :add
-  end
+template "#{groups_dir}//group_list.conf" do
+  owner "root"
+  group "root"
+  mode 0644
+  source "list.conf.erb"
+  variables(
+            :item => "groups",
+            :items => groups
+            )
+  action :create
+  notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
 end
 
 #subnets
-subnets = default['subnets'] || {}
+subnets = []
 subnets_dir = "#{dhcp_dir}/subnets.d"
 directory subnets_dir
 
@@ -123,28 +127,20 @@ template "#{subnets_dir}/subnet_list.conf" do
   notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
 end
 
-subnets.each_pair do |subnet_name, values|
-  dhcp_subnet subnet_name do
-    ranges values['ranges']
-    netmask values['netmask']
-    options values['options']
-    parameters values['parameters']
-    groups values['groups']
-    action :add
-  end
-end
-
 #hosts
-hosts = default['hosts'] || {}
-  hosts_dir = "#{dhcp_dir}/hosts.d"
+hosts = []
+hosts_dir = "#{dhcp_dir}/hosts.d"
 directory hosts_dir
 
-hosts.each_pair do |host_name, values|
-  Chef::Log.info "hosts: #{host_name} #{values}"
-  dhcp_host host_name do
-    options values['options']
-    parameters values['parameters']
-    action :add
-  end
+template "#{hosts_dir}/host_list.conf" do
+  owner "root"
+  group "root"
+  mode 0644
+  source "list.conf.erb"
+  variables(
+            :item => "hosts",
+            :items => hosts
+            )
+  action :create
+  notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
 end
-
