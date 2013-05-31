@@ -18,6 +18,6 @@
   <% end -%>
 <% end -%>
 
-include <%= @dhcp_dir %>"/groups.d/group_list.conf";
-include <%= @dhcp_dir %>"/subnets.d/subnet_list.conf";
-include <%= @dhcp_dir %>"/hosts.d/host_list.conf";
+include "<%= @dhcp_dir %>/groups.d/group_list.conf";
+include "<%= @dhcp_dir %>/subnets.d/subnet_list.conf";
+include "<%= @dhcp_dir %>/hosts.d/host_list.conf";
