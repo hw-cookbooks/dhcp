@@ -85,7 +85,8 @@ template "#{dhcp_dir}/dhcpd.conf" do
   variables(
             :allows => allows,
             :parameters => parameters,
-            :options => options
+            :options => options,
+            :dhcp_dir => dhcp_dir
             )
   action :create
   notifies :restart, resources(:service => "dhcp3-server"), :delayed
