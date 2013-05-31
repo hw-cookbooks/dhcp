@@ -136,7 +136,7 @@ end
 
 #hosts
 hosts = default['hosts'] || {}
-  hosts_dir = "#{dhcp_dir]}/hosts.d"
+  hosts_dir = "#{dhcp_dir}/hosts.d"
 directory hosts_dir
 
 hosts.each_pair do |host_name, values|
