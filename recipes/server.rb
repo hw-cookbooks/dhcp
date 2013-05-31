@@ -75,7 +75,7 @@ optionsh.each {|k, v| options.push("#{k} #{v}")}
 options.sort
 Chef::Log.info "options: #{options}"
 
-dhcp3_dir = node["dhcp"]["directory"]
+dhcp_dir = node["dhcp"]["directory"]
 
 template "#{dhcp_dir}/dhcpd.conf" do
   owner "root"
