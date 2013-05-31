@@ -75,7 +75,9 @@ optionsh.each {|k, v| options.push("#{k} #{v}")}
 options.sort
 Chef::Log.info "options: #{options}"
 
-template "/etc/dhcp3/dhcpd.conf" do
+dhcp3_dir = node["dhcp"]["directory"]
+
+template "#{dhcp_dir}/dhcpd.conf" do
   owner "root"
   group "root"
   mode 0644
@@ -91,9 +93,9 @@ end
 
 #groups
 groups = []
-directory "/etc/dhcp3/groups.d"
+directory "#{dhcp_dir}/groups.d"
 
-template "/etc/dhcp3/groups.d/group_list.conf" do
+template "#{dhcp_dir}/groups.d/group_list.conf" do
   owner "root"
   group "root"
   mode 0644
@@ -108,9 +110,9 @@ end
 
 #subnets
 subnets = []
-directory "/etc/dhcp3/subnets.d"
+directory "#{dhcp_dir}/subnets.d"
 
-template "/etc/dhcp3/subnets.d/subnet_list.conf" do
+template "#{dhcp_dir}/subnets.d/subnet_list.conf" do
   owner "root"
   group "root"
   mode 0644
@@ -125,8 +127,8 @@ end
 
 #hosts
 hosts = []
-directory "/etc/dhcp3/hosts.d"
-template "/etc/dhcp3/hosts.d/host_list.conf" do
+directory "#{dhcp_dir}/hosts.d"
+template "#{dhcp_dir}/hosts.d/host_list.conf" do
   owner "root"
   group "root"
   mode 0644
