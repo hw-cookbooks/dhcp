@@ -1,5 +1,5 @@
 # File managed by Chef
 
-<% @items.keys.each do |item| -%>
+<% @items.each do |item| -%>
 include "<%= node[:dhcp][:config_dir] %>/<%= @item %>.d/<%= item %>.conf";
 <% end -%>
