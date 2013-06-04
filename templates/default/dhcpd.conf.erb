@@ -6,12 +6,12 @@
   <% end -%>
 <% end -%>
 
-<% @parameters.each_pair do |param,value| -%>
-<%= param %> <%= value %>;
+<% @parameters.each do |param| -%>
+<%= param %>;
 <% end -%>
 
-<% @options.each_pair do |option,value| -%>
-option <%= option %> <%= value %>;
+<% @options.each do |option| -%>
+option <%= option %>;
 <% end -%>
 
 include "<%= node[:dhcp][:config_dir] %>/subnets.d/subnet_list.conf";
