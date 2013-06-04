@@ -22,12 +22,7 @@ package node[:dhcp][:package]
 
 service node[:dhcp][:package] do
   supports :restart => true, :status => true, :reload => true
-
-  if node['platform'] == "ubuntu" && node['platform_version'].to_f >= 12.04
-    provider Chef::Provider::Service::Upstart
-  else
-    action [:enable]
-  end
+  action [:enable]
 end
 
 template "/etc/default/#{node[:dhcp][:package]}" do
@@ -97,7 +92,7 @@ groups = []
 groups_dir = "#{dhcp_dir}/groups.d"
 directory groups_dir
 
-template "#{groups_dir}//group_list.conf" do
+template "#{groups_dir}/group_list.conf" do
   owner "root"
   group "root"
   mode 0644
