@@ -22,11 +22,11 @@ package node[:dhcp][:package]
 
 service node[:dhcp][:package] do
   supports :restart => true, :status => true, :reload => true
-  action [ :enable ]
 
   if node['platform'] == "ubuntu" && node['platform_version'].to_f >= 12.04
     provider Chef::Provider::Service::Upstart
-    action [ :nothing ]
+  else
+    action [:enable]
   end
 end
 
