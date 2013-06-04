@@ -26,7 +26,7 @@ service node[:dhcp][:package] do
 
   if node['platform'] == "ubuntu" && node['platform_version'].to_f >= 12.04
     provider Chef::Provider::Service::Upstart
-    action [ :none ]
+    action [ :nothing ]
   end
 end
 
