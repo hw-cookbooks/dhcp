@@ -18,14 +18,16 @@
 # limitations under the License.
 #
 
-package "dhcp3-server"
+Encoding.default_external = Encoding::UTF_8 if RUBY_VERSION > "1.9"
 
-service "dhcp3-server" do
+package node[:dhcp][:package]
+
+service node[:dhcp][:package] do
   supports :restart => true, :status => true, :reload => true
-  action [ :enable ]
+  action [:enable]
 end
 
-template "/etc/default/dhcp3-server" do
+template "/etc/default/#{node[:dhcp][:package]}" do
   owner "root"
   group "root"
   mode 0644
@@ -35,90 +37,108 @@ end
 
 #get any default attributes and merge them with the data bag items
 #convert them to the proper formatted lists, sort, and pass into template
-default = data_bag_item('dhcp', 'default')
+default = Array.new
+begin
+  default = data_bag_item('dhcp', 'default')
+rescue Net::HTTPServerException
+end
 
 allows = node['dhcp']['allows'] || []
-allows.push(default['allows']).flatten!
-allows.uniq!
-allows.sort!
+unless default.empty?
+  allows.push(default['allows']).flatten!
+end
+allows.uniq
+allows.sort
 Chef::Log.debug "allows: #{allows}"
 
 parameters = []
 parametersh = {}
 node['dhcp']['parameters'].each {|k, v| parametersh[k] = v}
-parametersh.merge!(default['parameters'])
+unless default.empty?
+  parametersh.merge(default['parameters'])
+end
 parametersh.each {|k, v| parameters.push("#{k} #{v}")}
-parameters.sort!
+parameters.sort
 Chef::Log.debug "parameters: #{parameters}"
 
 options = []
 optionsh = {}
 node['dhcp']['options'].each {|k,v| optionsh[k] = v}
-optionsh.merge!(default['options'])
+unless default.empty?
+  optionsh.merge(default['options'])
+end
 optionsh.each {|k, v| options.push("#{k} #{v}")}
-options.sort!
+options.sort
 Chef::Log.info "options: #{options}"
 
-template "/etc/dhcp3/dhcpd.conf" do
+dhcp_dir = node["dhcp"]["config_dir"]
+
+template "#{dhcp_dir}/dhcpd.conf" do
   owner "root"
   group "root"
   mode 0644
   source "dhcpd.conf.erb"
   variables(
-    :allows => allows,
-    :parameters => parameters,
-    :options => options
-    )
+            :allows => allows,
+            :parameters => parameters,
+            :options => options,
+            :dhcp_dir => dhcp_dir
+            )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
 end
 
 #groups
-groups = []
-directory "/etc/dhcp3/groups.d"
 
-template "/etc/dhcp3/groups.d/group_list.conf" do
+groups = []
+groups_dir = "#{dhcp_dir}/groups.d"
+directory groups_dir
+
+template "#{groups_dir}/group_list.conf" do
   owner "root"
   group "root"
   mode 0644
   source "list.conf.erb"
   variables(
-    :item => "groups",
-    :items => groups
-    )
+            :item => "groups",
+            :items => groups
+            )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
 end
 
 #subnets
 subnets = []
-directory "/etc/dhcp3/subnets.d"
+subnets_dir = "#{dhcp_dir}/subnets.d"
+directory subnets_dir
 
-template "/etc/dhcp3/subnets.d/subnet_list.conf" do
+template "#{subnets_dir}/subnet_list.conf" do
   owner "root"
   group "root"
   mode 0644
   source "list.conf.erb"
   variables(
-    :item => "subnets",
-    :items => subnets
-    )
+            :item => "subnets",
+            :items => subnets
+            )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
 end
 
 #hosts
 hosts = []
-directory "/etc/dhcp3/hosts.d"
-template "/etc/dhcp3/hosts.d/host_list.conf" do
+hosts_dir = "#{dhcp_dir}/hosts.d"
+directory hosts_dir
+
+template "#{hosts_dir}/host_list.conf" do
   owner "root"
   group "root"
   mode 0644
   source "list.conf.erb"
   variables(
-    :item => "hosts",
-    :items => hosts
-    )
+            :item => "hosts",
+            :items => hosts
+            )
   action :create
-  notifies :restart, resources(:service => "dhcp3-server"), :delayed
+  notifies :restart, resources(:service => node[:dhcp][:package]), :delayed
 end

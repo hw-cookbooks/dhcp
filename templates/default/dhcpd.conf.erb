@@ -1,18 +1,18 @@
 # File managed by Chef
 
-<% @allows.each do |allow| -%>
-allow <%= allow %>;
+<% if not @allows.empty? -%>
+  <% @allows.each do |allow| -%>
+  allow <%= allow %>;
+  <% end -%>
 <% end -%>
 
-<% @parameters.each do |parameter| -%>
-<%= parameter %>;
+<% @parameters.each do |param| -%>
+<%= param %>;
 <% end -%>
 
 <% @options.each do |option| -%>
 option <%= option %>;
 <% end -%>
 
-include "/etc/dhcp3/groups.d/group_list.conf";
-include "/etc/dhcp3/subnets.d/subnet_list.conf";
-include "/etc/dhcp3/hosts.d/host_list.conf";
+include "<%= node[:dhcp][:config_dir] %>/subnets.d/subnet_list.conf";
 
